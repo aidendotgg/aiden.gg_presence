@@ -79,56 +79,37 @@ export async function formatAssets(activity: Activity): Promise<{ smallImage: st
     }
 }
 
-export async function formatBadges(badges: Readonly<UserFlagsBitField>, user: User): Promise<string[]> {
-    let array = new Array<string>();
-    if (badges !== null) {
-        badges.toArray().map((badge) => {
-            switch (badge) {
-                case "HypeSquadOnlineHouse1":
-                    array.push("HypeSquad Bravery")
-                    break;
-                case "HypeSquadOnlineHouse2":
-                    array.push("HypeSquad Brilliance")
-                    break;
-                case "HypeSquadOnlineHouse3":
-                    array.push("HypeSquad Balance")
-                    break;
-                case "PremiumEarlySupporter":
-                    array.push("Early Supporter")
-                    break;
-                case "VerifiedDeveloper":
-                    array.push("Early Verified Bot Developer")
-                    break;
-                case "BugHunterLevel1":
-                    array.push("Discord Bug Hunter_1")
-                    break;
-                case "BugHunterLevel2":
-                    array.push("Discord Bug Hunter_2")
-                    break;
-                case "CertifiedModerator":
-                    array.push("Discord Certified Moderator")
-                    break;
-                case "Staff":
-                    array.push("Discord Staff")
-                    break;
-                case "Hypesquad":
-                    array.push("HypeSquad Events")
-                    break;
-                case "Partner":
-                    array.push("Partnered Server Owner")
-                    break;
-                case "ActiveDeveloper":
-                    array.push("Active Developer")
-                    break;
-            }
-        })
+export async function formatBadges(badges: Readonly<UserFlagsBitField>, user: User): Promise<string[] | null> {
+    const badgeMappings: { [key: string]: string } = {
+        "HypeSquadOnlineHouse1": "HypeSquad Bravery",
+        "HypeSquadOnlineHouse2": "HypeSquad Brilliance",
+        "HypeSquadOnlineHouse3": "HypeSquad Balance",
+        "PremiumEarlySupporter": "Early Supporter",
+        "VerifiedDeveloper": "Early Verified Bot Developer",
+        "BugHunterLevel1": "Discord Bug Hunter_1",
+        "BugHunterLevel2": "Discord Bug Hunter_2",
+        "CertifiedModerator": "Discord Certified Moderator",
+        "Staff": "Discord Staff",
+        "Hypesquad": "HypeSquad Events",
+        "Partner": "Partnered Server Owner",
+        "ActiveDeveloper": "Active Developer"
+    };
+
+    const array = new Array<string>();
+    badges?.toArray().forEach((badge) => {
+        if (badgeMappings[badge]) array.push(badgeMappings[badge]);
+    });
+
+    if (await hasNitro(user)) {
+        array.push("Discord Nitro");
     }
-    if (user.displayAvatarURL({ forceStatic: false }).endsWith('.gif')) {
-        array.push("Discord Nitro")
-    } else if ((await user.fetch()).bannerURL({ forceStatic: false }) !== null) {
-        array.push("Discord Nitro")
-    }
-    return array.length > 0 ? array : null;
+
+    return array.length ? array : null;
+}
+
+async function hasNitro(user: User): Promise<boolean> {
+    return user.displayAvatarURL({ forceStatic: false }).endsWith('.gif') ||
+           (await user.fetch()).bannerURL({ forceStatic: false }) !== null;
 }
 
 function emojiUnicode(emoji: string): string {
